@@ -6,30 +6,42 @@
  * 
  * Return: The height of the tree, 0 if tree is NULL
  */
-static size_t binary_tree_height(const binary_tree_t *tree)
+size_t binary_tree_height(const binary_tree_t *tree)
 {
+	size_t l = 0;
+	size_t r = 0;
+
+	/* Return 0 if the tree is NULL */
 	if (tree == NULL)
 		return (0);
 
-	/* Recursively find the height of the left and right subtrees */
-	size_t left_height = binary_tree_height(tree->left);
-	size_t right_height = binary_tree_height(tree->right);
+	/* Calculate the height of the left and right subtrees */
+	l = tree->left ? 1 + binary_tree_height(tree->left) : 1;
+	r = tree->right ? 1 + binary_tree_height(tree->right) : 1;
 
-	/* The height is the maximum of the left and right subtrees, plus 1 for the current node */
-	return (1 + (left_height > right_height ? left_height : right_height));
+	/* Return the maximum height between left and right subtrees */
+	return ((l > r) ? l : r);
 }
 
 /**
  * binary_tree_balance - Measures the balance factor of a binary tree
- * @tree: Pointer to the root node of the tree to measure the balance factor
+ * @tree: Pointer to the root node of the tree
  * 
  * Return: The balance factor of the tree, 0 if tree is NULL
  */
 int binary_tree_balance(const binary_tree_t *tree)
 {
-	if (tree == NULL)
-		return (0);
+	int left = 0, right = 0, balance = 0;
 
-	/* Calculate the balance factor as the difference between the height of the left and right subtrees */
-	return (binary_tree_height(tree->left) - binary_tree_height(tree->right));
+	/* If the tree is not NULL, calculate the balance factor */
+	if (tree)
+	{
+		left = (int)binary_tree_height(tree->left);
+		right = (int)binary_tree_height(tree->right);
+
+		/* The balance factor is the difference in heights of left and right subtrees */
+		balance = left - right;
+	}
+
+	return (balance);
 }
