@@ -23,7 +23,7 @@ avl_t *avl_insert(avl_t **tree, int value)
 }
 
 /**
- * insert - Function that does node value instertion in a AVL
+ * insert - Function that does node value insertion in an AVL tree
  * @tree: The type **pointer of root node of the AVL tree struct
  * @parent: The parent node of struct AVL
  * @new_node: The type **pointer left or right insertion
@@ -40,15 +40,13 @@ avl_t *insert(avl_t **tree, avl_t *parent, avl_t **new_node, int new_val)
 
 	if ((*tree)->n > new_val)
 	{
-		(*tree)->left = insert(&(*tree)->left, *tree, new_node,
-				new_val);
+		(*tree)->left = insert(&(*tree)->left, *tree, new_node, new_val);
 		if ((*tree)->left == NULL)
 			return (NULL);
 	}
 	else if ((*tree)->n < new_val)
 	{
-		(*tree)->right = insert(&(*tree)->right, *tree, new_node,
-				new_val);
+		(*tree)->right = insert(&(*tree)->right, *tree, new_node, new_val);
 		if ((*tree)->right == NULL)
 			return (NULL);
 	}
