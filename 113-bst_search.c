@@ -1,36 +1,28 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "binary_trees.h"
-
 /**
- * main - Entry point
- *
- * Return: 0 on success, error code on failure
+ * bst_search - search for a special value in the tree and return the node
+ * @tree: tree to go through
+ * @value: value to search
+ * Return: the node with the value or NULL if the value is not in the tree
  */
-int main(void)
+bst_t *bst_search(const bst_t *tree, int value)
 {
-    bst_t *tree;
-    int array[] = {
-        79, 47, 68, 87, 84, 91, 21, 32, 34, 2,
-        20, 22, 98, 1, 62, 95
-    };
-    size_t n = sizeof(array) / sizeof(array[0]);
-    bst_t *node;
+	bst_t *found;
 
-    tree = array_to_bst(array, n);
-    if (!tree)
-        return (1);
-    binary_tree_print(tree);
-    node = bst_search(tree, 32);
-    if (node)
-        printf("Found: %d\n", node->n);
-    else
-        printf("Value not found\n");
-    binary_tree_print(node);
-    node = bst_search(tree, 512);
-    if (node)
-        printf("Found: %d\n", node->n);
-    else
-        printf("Node should be nil -> %p\n", (void *)node);
-    return (0);
+	if (tree == NULL)
+		return (NULL);
+
+	if (value < tree->n)
+	{
+		found = bst_search(tree->left, value);
+	}
+	else if (value > tree->n)
+	{
+		found = bst_search(tree->right, value);
+	}
+	else if (value == tree->n)
+		return ((bst_t *)tree);
+	else
+		return (NULL);
+	return (found);
 }
