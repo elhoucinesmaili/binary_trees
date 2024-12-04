@@ -1,127 +1,141 @@
 #include "binary_trees.h"
 #include "0-binary_tree_node.c"
 
-void in_order(bst_t *tree, bst_t **node, size_t height);
-void balance_bst(bst_t *root);
-size_t bst_height(const bst_t *tree);
+void pre_order(heap_t *tree, heap_t **node, size_t height);
+void make_heap(heap_t *root);
+size_t tree_height(const heap_t *tree);
 
 /**
- * bst_extract - Function that extracts the root node of a Binary Search Tree
- * @root: Double pointer to the root of the BST
+ * heap_extract - Function that extracts the root node of a Max Binary Heap
+ * @root: Double pointer to the root of heap
  * Return: Value, 0 otherwise
  */
-int bst_extract(bst_t **root)
+int heap_extract(heap_t **root)
 {
-	int value;
-	bst_t *bst, *new_node;
+    int value;
+    heap_t *mbh, *new_node;
 
-	if (!root || !*root)
-		return (0);
+    if (!root || !*root)
+        return (0);
 
-	bst = *root;
-	value = bst->n;
-	if (!bst->left && !bst->right)
-	{
-		*root = NULL;
-		free(bst);
-		return (value);
-	}
+    mbh = *root;
+    value = mbh->n;
+    
+    if (!mbh->left && !mbh->right)
+    {
+        *root = NULL;
+        free(mbh);
+        return (value);
+    }
 
-	in_order(bst, &new_node, bst_height(bst));
+    /* Pre-order traversal to find the last node */
+    pre_order(mbh, &new_node, tree_height(mbh));
 
-	bst->n = new_node->n;
-	if (new_node->parent->right)
-		new_node->parent->right = NULL;
-	else
-		new_node->parent->left = NULL;
+    /* Replace root with the last node */
+    mbh->n = new_node->n;
 
-	free(new_node);
-	balance_bst(bst);
-	*root = bst;
-	return (value);
+    /* Remove the last node from the tree */
+    if (new_node->parent->right)
+        new_node->parent->right = NULL;
+    else
+        new_node->parent->left = NULL;
+
+    free(new_node);
+
+    /* Heapify the tree to maintain heap properties */
+    make_heap(mbh);
+
+    *root = mbh;
+    return (value);
 }
 
 /**
- * in_order - Function that visits a binary tree using in-order traversal
+ * pre_order - Function that visits a binary tree using pre-order traversal
  * @tree: Pointer to the root node of the tree to traverse
- * @node: The last node in in-order traversal
+ * @node: The last node in preorder traverse
  * @height: The tree height
  *
  * Return: None
  */
-void in_order(bst_t *tree, bst_t **node, size_t height)
+void pre_order(heap_t *tree, heap_t **node, size_t height)
 {
-	if (!tree)
-		return;
+    if (!tree)
+        return;
 
-	if (!height)
-		*node = tree;
+    if (height == 0)
+        *node = tree;
 
-	height--;
+    height--;
 
-	in_order(tree->left, node, height);
-	in_order(tree->right, node, height);
+    pre_order(tree->left, node, height);
+    pre_order(tree->right, node, height);
 }
 
 /**
- * balance_bst - Function that balances the Binary Search Tree
- * @root: Pointer to binary search tree
+ * make_heap - Function that heapifies max binary heap
+ * @root: Pointer to binary heap
  * Return: None
  */
-void balance_bst(bst_t *root)
+void make_heap(heap_t *root)
 {
-	bst_t *tmp_l, *tmp_r;
-	int value;
+    heap_t *tmp_l, *tmp_r;
+    int value;
 
-	if (!root)
-		return;
+    if (!root)
+        return;
 
-	tmp_l = root;
+    tmp_l = root;
 
-	while (1)
-	{
-		if (!tmp_l->left)
-			break;
+    while (1)
+    {
+        if (!tmp_l->left)
+            break;
 
-		if (!tmp_l->right)
-			tmp_r = tmp_l->left;
-		else
-		{
-			if (tmp_l->left->n > tmp_l->right->n)
-				tmp_r = tmp_l->left;
-			else
-				tmp_r = tmp_l->right;
-		}
-		if (tmp_l->n > tmp_r->n)
-			break;
+        if (!tmp_l->right)
+            tmp_r = tmp_l->left;
+        else
+        {
+            if (tmp_l->left->n > tmp_l->right->n)
+                tmp_r = tmp_l->left;
+            else
+                tmp_r = tmp_l->right;
+        }
 
-		value = tmp_l->n;
-		tmp_l->n = tmp_r->n;
-		tmp_r->n = value;
-		tmp_l = tmp_r;
-	}
+        /* Check if we need to swap the parent node with the largest child */
+        if (tmp_l->n > tmp_r->n)
+            break;
+
+        /* Swap the values to maintain heap property */
+        value = tmp_l->n;
+        tmp_l->n = tmp_r->n;
+        tmp_r->n = value;
+
+        tmp_l = tmp_r;
+    }
 }
 
 /**
- * bst_height - Function that measures the height of a binary search tree
- * @tree: Pointer to root node of BST to measure height
+ * tree_height - Function that measures the height of a binary tree
+ * @tree: Pointer to root node of tree to measure height
  * Return: Height, 0 otherwise
  */
-size_t bst_height(const bst_t *tree)
+size_t tree_height(const heap_t *tree)
 {
-	size_t l_height = 0, r_height = 0;
+    size_t l_height = 0, r_height = 0;
 
-	if (!tree)
-		return (0);
+    if (!tree)
+        return (0);
 
-	if (tree->left)
-		l_height = 1 + bst_height(tree->left);
+    /* Recursively calculate the height of left and right subtrees */
+    if (tree->left)
+        l_height = 1 + tree_height(tree->left);
 
-	if (tree->right)
-		r_height = 1 + bst_height(tree->right);
+    if (tree->right)
+        r_height = 1 + tree_height(tree->right);
 
-	if (l_height > r_height)
-		return (l_height);
+    /* Return the greater of the two heights */
+    if (l_height > r_height)
+        return (l_height);
 
-	return (r_height);
+    return (r_height);
 }

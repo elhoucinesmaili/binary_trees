@@ -1,94 +1,108 @@
 #include "binary_trees.h"
 
-int is_mbh(const binary_tree_t *tree);
-int binary_tree_is_complete(const binary_tree_t *tree);
-int binary_tree_level(const binary_tree_t *tree, size_t index, size_t size);
-size_t binary_tree_size(const binary_tree_t *tree);
-
 /**
- * binary_tree_is_heap - Function that checks if the binary tree is a valid Max Binary Heap
- * @tree: Pointer to the root node of the tree to check
- * Return: 1 if valid Max Binary Heap, 0 otherwise
- */
-int binary_tree_is_heap(const binary_tree_t *tree)
-{
-	if (!tree)
-		return (0);
-
-	return (is_mbh(tree));
-}
-
-/**
- * is_mbh - Function that checks if the binary tree is a valid Max Binary Heap
- * @tree: Pointer to the root node of the tree to check
- * Return: 1 if valid Max Binary Heap, 0 otherwise
- */
-int is_mbh(const binary_tree_t *tree)
-{
-	if (!tree)
-		return (1);
-
-	if (!binary_tree_is_complete(tree))
-		return (0);
-
-	if (tree->left)
-		if (tree->left->n > tree->n)
-			return (0);
-
-	if (tree->right)
-		if (tree->right->n > tree->n)
-			return (0);
-
-	return (is_mbh(tree->left) && is_mbh(tree->right));
-}
-
-/**
- * binary_tree_is_complete - Function that checks if a binary tree is complete
- * @tree: Pointer to the root node of the tree to check
- * Return: 1 if tree is complete, 0 otherwise
- */
-int binary_tree_is_complete(const binary_tree_t *tree)
-{
-	size_t size;
-
-	if (!tree)
-		return (0);
-
-	size = binary_tree_size(tree);
-
-	return (binary_tree_level(tree, 0, size));
-}
-
-/**
- * binary_tree_level - Function that checks if a binary tree is complete
- * @tree: Pointer to the root node of the tree to check
- * @index: The node index to check
- * @size: Number of nodes in the tree
+ * heap_insert - Function that inserts a value in a Max Binary Heap
+ * @root: Double pointer to the root node of the Heap to insert the value
+ * @value: The value to store in the node to be inserted
  *
- * Return: 1 if tree is complete, 0 otherwise
+ * Return: Pointer to the new node, or NULL if failed
  */
-int binary_tree_level(const binary_tree_t *tree, size_t index, size_t size)
+heap_t *heap_insert(heap_t **root, int value)
 {
-	if (!tree)
-		return (1);
+	heap_t *new_node, *parent;
 
-	if (index >= size)
-		return (0);
+	if (!root)
+		return (NULL);
 
-	return (binary_tree_level(tree->left, 2 * index + 1, size) &&
-			binary_tree_level(tree->right, 2 * index + 2, size));
+	/* If the heap is empty, create the root node */
+	if (!(*root))
+	{
+		*root = binary_tree_node(NULL, value);
+		return (*root);
+	}
+
+	/* Insert the value in the tree as a complete binary tree */
+	new_node = binary_tree_node(NULL, value);
+	if (!new_node)
+		return (NULL);
+
+	/* Find the correct position to insert (complete binary tree) */
+	if (insert_as_complete_tree(*root, new_node) == 0)
+	{
+		free(new_node);
+		return (NULL);
+	}
+
+	/* Perform "heapify-up" to maintain max-heap property */
+	parent = new_node->parent;
+	while (parent && new_node->n > parent->n)
+	{
+		/* Swap values with the parent to maintain heap property */
+		swap(new_node, parent);
+		new_node = parent;
+		parent = new_node->parent;
+	}
+
+	return (new_node);
 }
 
 /**
- * binary_tree_size - Function that measures the size of a binary tree
- * @tree: The tree to measure the size of
- * Return: Size of tree, 0 otherwise
+ * insert_as_complete_tree - Helper function to insert a node in a complete tree
+ * @root: Root of the heap
+ * @new_node: New node to insert
+ * Return: 1 if inserted successfully, 0 otherwise
  */
-size_t binary_tree_size(const binary_tree_t *tree)
+int insert_as_complete_tree(heap_t *root, heap_t *new_node)
 {
-	if (!tree)
+	heap_t *queue[1024];  /* Array to store nodes at each level */
+	int front = 0, rear = 0;
+
+	if (!root || !new_node)
 		return (0);
 
-	return (binary_tree_size(tree->left) +
-			binary_tree_size(tree->right) + 1);
+	/* Enqueue root node */
+	queue[rear++] = root;
+
+	while (front < rear)
+	{
+		heap_t *current = queue[front++];
+
+		/* Check if the current node has a left child */
+		if (!current->left)
+		{
+			current->left = new_node;
+			new_node->parent = current;
+			return (1);
+		}
+		else
+		{
+			queue[rear++] = current->left;
+		}
+
+		/* Check if the current node has a right child */
+		if (!current->right)
+		{
+			current->right = new_node;
+			new_node->parent = current;
+			return (1);
+		}
+		else
+		{
+			queue[rear++] = current->right;
+		}
+	}
+
+	return (0);  /* Failed to insert */
+}
+
+/**
+ * swap - Helper function to swap the values of two nodes
+ * @node1: First node to swap
+ * @node2: Second node to swap
+ */
+void swap(heap_t *node1, heap_t *node2)
+{
+	int tmp = node1->n;
+	node1->n = node2->n;
+	node2->n = tmp;
 }
