@@ -1,67 +1,125 @@
 #include "binary_trees.h"
 
 /**
- * binary_tree_height_b - Measures height of a binary tree for a balanced tree
- * @tree: tree to go through
- * Return: the height
+ * successor - get the next successor, i.e., the minimum node in the right subtree
+ * @node: tree to check
+ * Return: the min value of this tree
  */
-size_t binary_tree_height_b(const binary_tree_t *tree)
+int successor(bst_t *node)
 {
-    size_t l = 0;
-    size_t r = 0;
+    int left = 0;
 
-    if (tree == NULL)
+    if (node == NULL)
     {
         return (0);
     }
     else
     {
-        if (tree)
+        left = successor(node->left);
+        if (left == 0)
         {
-            l = tree->left ? 1 + binary_tree_height_b(tree->left) : 1;
-            r = tree->right ? 1 + binary_tree_height_b(tree->right) : 1;
+            return (node->n);
         }
-        return ((l > r) ? l : r);
+        return (left);
     }
 }
 
 /**
- * binary_tree_balance - Measures balance factor of a binary tree
- * @tree: tree to go through
- * Return: balance factor
+ * two_children - function that gets the next successor using the minimum
+ * value in the right subtree, and then replaces the node value with
+ * this successor
+ * @root: node that has two children
+ * Return: the value found
  */
-int binary_tree_balance(const binary_tree_t *tree)
+int two_children(bst_t *root)
 {
-    int right = 0, left = 0, total = 0;
+    int new_value = 0;
 
-    if (tree)
-    {
-        left = ((int)binary_tree_height_b(tree->left));
-        right = ((int)binary_tree_height_b(tree->right));
-        total = left - right;
-    }
-    return (total);
+    new_value = successor(root->right);
+    root->n = new_value;
+    return (new_value);
 }
 
 /**
- * binary_tree_is_balanced - Checks if a binary tree is balanced
- * @tree: tree to check
- * Return: 1 if balanced, 0 if not
+ * remove_type - function that removes a node depending on its children
+ * @root: node to remove
+ * Return: 0 if it has no children or other value if it has
  */
-int binary_tree_is_balanced(const binary_tree_t *tree)
+int remove_type(bst_t *root)
 {
-    int balance = 0;
-
-    if (tree == NULL)
+    if (!root->left && !root->right)
     {
+        if (root->parent->right == root)
+            root->parent->right = NULL;
+        else
+            root->parent->left = NULL;
+        free(root);
         return (0);
     }
-
-    balance = binary_tree_balance(tree);
-
-    if (balance >= -1 && balance <= 1)
+    else if ((!root->left && root->right) || (!root->right && root->left))
     {
-        return (1);
+        if (!root->left)
+        {
+            if (root->parent->right == root)
+                root->parent->right = root->right;
+            else
+                root->parent->left = root->right;
+            root->right->parent = root->parent;
+        }
+        if (!root->right)
+        {
+            if (root->parent->right == root)
+                root->parent->right = root->left;
+            else
+                root->parent->left = root->left;
+            root->left->parent = root->parent;
+        }
+        free(root);
+        return (0);
     }
-    return (0);
+    else
+        return (two_children(root));
+}
+
+/**
+ * bst_remove - removes a node from a BST tree
+ * @root: root of the tree
+ * @value: node with this value to remove
+ * Return: the tree with the node removed
+ */
+bst_t *bst_remove(bst_t *root, int value)
+{
+    int type = 0;
+
+    if (root == NULL)
+        return (NULL);
+    if (value < root->n)
+        root->left = bst_remove(root->left, value);
+    else if (value > root->n)
+        root->right = bst_remove(root->right, value);
+    else if (value == root->n)
+    {
+        type = remove_type(root);
+        if (type != 0)
+            root->right = bst_remove(root->right, type);
+    }
+    else
+        return (NULL);
+    return (root);
+}
+
+/**
+ * bst_min_value - finds the minimum value in a given BST
+ * @root: root of the tree
+ * Return: the minimum value in the tree
+ */
+int bst_min_value(bst_t *root)
+{
+    if (root == NULL)
+        return (0);
+
+    while (root->left != NULL)
+        root = root->left;
+
+    return (root->n);
 }
