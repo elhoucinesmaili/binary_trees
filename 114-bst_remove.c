@@ -1,108 +1,67 @@
 #include "binary_trees.h"
-/**
- * predecessor - get the in-order predecessor (max node in the left subtree)
- * @node: tree to check
- * Return: the max value of this tree
- */
-int predecessor(bst_t *node)
-{
-	int right = 0;
 
-	if (node == NULL)
-	{
-		return (0);
-	}
-	else
-	{
-		right = predecessor(node->right);
-		if (right == 0)
-		{
-			return (node->n);
-		}
-		return (right);
-	}
+/**
+ * binary_tree_height_b - Measures height of a binary tree for a balanced tree
+ * @tree: tree to go through
+ * Return: the height
+ */
+size_t binary_tree_height_b(const binary_tree_t *tree)
+{
+    size_t l = 0;
+    size_t r = 0;
+
+    if (tree == NULL)
+    {
+        return (0);
+    }
+    else
+    {
+        if (tree)
+        {
+            l = tree->left ? 1 + binary_tree_height_b(tree->left) : 1;
+            r = tree->right ? 1 + binary_tree_height_b(tree->right) : 1;
+        }
+        return ((l > r) ? l : r);
+    }
 }
 
 /**
- * two_children - function that gets the in-order predecessor using the max
- * value in the left subtree, and then replace the node value for
- * this predecessor
- * @root: node that has two children
- * Return: the value found
+ * binary_tree_balance - Measures balance factor of a binary tree
+ * @tree: tree to go through
+ * Return: balance factor
  */
-int two_children(bst_t *root)
+int binary_tree_balance(const binary_tree_t *tree)
 {
-	int new_value = 0;
+    int right = 0, left = 0, total = 0;
 
-	new_value = predecessor(root->left);
-	root->n = new_value;
-	return (new_value);
+    if (tree)
+    {
+        left = ((int)binary_tree_height_b(tree->left));
+        right = ((int)binary_tree_height_b(tree->right));
+        total = left - right;
+    }
+    return (total);
 }
 
 /**
- * remove_type - function that removes a node depending on its children
- * @root: node to remove
- * Return: 0 if it has no children or another value if it has
+ * binary_tree_is_balanced - Checks if a binary tree is balanced
+ * @tree: tree to check
+ * Return: 1 if balanced, 0 if not
  */
-int remove_type(bst_t *root)
+int binary_tree_is_balanced(const binary_tree_t *tree)
 {
-	if (!root->left && !root->right)
-	{
-		if (root->parent->right == root)
-			root->parent->right = NULL;
-		else
-			root->parent->left = NULL;
-		free(root);
-		return (0);
-	}
-	else if ((!root->left && root->right) || (!root->right && root->left))
-	{
-		if (!root->left)
-		{
-			if (root->parent->right == root)
-				root->parent->right = root->right;
-			else
-				root->parent->left = root->right;
-			root->right->parent = root->parent;
-		}
-		if (!root->right)
-		{
-			if (root->parent->right == root)
-				root->parent->right = root->left;
-			else
-				root->parent->left = root->left;
-			root->left->parent = root->parent;
-		}
-		free(root);
-		return (0);
-	}
-	else
-		return (two_children(root));
-}
+    int balance = 0;
 
-/**
- * bst_remove - remove a node from a BST tree
- * @root: root of the tree
- * @value: node with this value to remove
- * Return: the tree changed
- */
-bst_t *bst_remove(bst_t *root, int value)
-{
-	int type = 0;
+    if (tree == NULL)
+    {
+        return (0);
+    }
 
-	if (root == NULL)
-		return (NULL);
-	if (value < root->n)
-		bst_remove(root->left, value);
-	else if (value > root->n)
-		bst_remove(root->right, value);
-	else if (value == root->n)
-	{
-		type = remove_type(root);
-		if (type != 0)
-			bst_remove(root->left, type);
-	}
-	else
-		return (NULL);
-	return (root);
+    balance = binary_tree_balance(tree);
+
+    if (balance >= -1 && balance <= 1)
+    {
+        return (1);
+    }
+    return (0);
 }
