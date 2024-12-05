@@ -1,60 +1,43 @@
 #include "binary_trees.h"
 
 /**
- * insert_to_max_heap - Inserts a value into a Max Binary Heap.
- * @root: Double pointer to the root node of the Heap.
- * @value: The value to store in the node to be inserted.
+ * array_to_heap - Builds a Max Binary Heap tree from an array
+ * @array: Pointer to the first element of the array to be converted
+ * @size: The number of elements in the array
  *
- * Return: Pointer to the newly created node, or NULL on failure.
+ * Return: Root node of the created Binary Heap, or NULL on failure
  */
-heap_t *insert_to_max_heap(heap_t **root, int value)
+heap_t *array_to_heap(int *array, size_t size)
 {
-    heap_t *current, *new_node, *swap_node;
-    int total_nodes, remaining_nodes, temp, level, mask;
+    heap_t *root = NULL;
+    size_t index;
 
-    if (!root)
+    if (!array || size == 0)
         return (NULL);
-    if (!(*root))
-        return (*root = binary_tree_node(NULL, value));
 
-    current = *root;
-    total_nodes = calculate_tree_size(current);
-    remaining_nodes = total_nodes;
-
-    for (level = 0, mask = 1; remaining_nodes >= mask; mask <<= 1, level++)
-        remaining_nodes -= mask;
-
-    for (mask = 1 << (level - 1); mask > 1; mask >>= 1)
-        current = (remaining_nodes & mask) ? current->right : current->left;
-
-    new_node = binary_tree_node(current, value);
-    if (remaining_nodes & 1)
-        current->right = new_node;
-    else
-        current->left = new_node;
-
-    swap_node = new_node;
-    while (swap_node->parent && (swap_node->n > swap_node->parent->n))
+    for (index = 0; index < size; index++)
     {
-        temp = swap_node->n;
-        swap_node->n = swap_node->parent->n;
-        swap_node->parent->n = temp;
-        new_node = new_node->parent;
+        if (!heap_insert(&root, array[index]))
+        {
+            /* Free the entire tree if insertion fails */
+            binary_tree_free(root);
+            return (NULL);
+        }
     }
 
-    return (new_node);
+    return (root);
 }
 
 /**
- * calculate_tree_size - Calculates the size of a binary tree.
- * @tree: Pointer to the root node of the tree.
- *
- * Return: Size of the tree, or 0 if the tree is NULL.
+ * binary_tree_free - Frees a binary tree
+ * @tree: Pointer to the root of the tree to free
  */
-size_t calculate_tree_size(const binary_tree_t *tree)
+void binary_tree_free(heap_t *tree)
 {
     if (!tree)
-        return (0);
+        return;
 
-    return (calculate_tree_size(tree->left) + calculate_tree_size(tree->right) + 1);
+    binary_tree_free(tree->left);
+    binary_tree_free(tree->right);
+    free(tree);
 }
