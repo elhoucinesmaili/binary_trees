@@ -1,18 +1,18 @@
 #include "binary_trees.h"
 
-size_t binary_tree_size(const binary_tree_t *tree);
+size_t calculate_tree_size(const binary_tree_t *tree);
 
 /**
  * heap_insert - Inserts a value into a Max Binary Heap
  * @root: Double pointer to the root node of the Heap
- * @value: The value to store in the new node
+ * @value: The value to insert
  *
- * Return: Pointer to the new node, or NULL on failure
+ * Return: Pointer to the newly inserted node, or NULL on failure
  */
 heap_t *heap_insert(heap_t **root, int value)
 {
-    heap_t *current, *new_node, *swap;
-    int tmp, height, mask, position, total_nodes;
+    heap_t *current, *new_node, *swap_node;
+    int temp, level, mask, remainder, leaf_count, tree_size;
 
     if (!root)
         return (NULL);
@@ -21,39 +21,48 @@ heap_t *heap_insert(heap_t **root, int value)
         return (*root = binary_tree_node(NULL, value));
 
     current = *root;
-    total_nodes = binary_tree_size(current);
+    tree_size = calculate_tree_size(current);
+    leaf_count = tree_size;
 
-    for (height = 0, position = 1; total_nodes >= position; position *= 2, height++)
-        total_nodes -= position;
+    /* Determine the level and leaf position */
+    for (level = 0, remainder = 1; leaf_count >= remainder; remainder *= 2, level++)
+        leaf_count -= remainder;
 
-    for (mask = 1 << (height - 1); mask > 1; mask >>= 1)
-        current = (total_nodes & mask) ? current->right : current->left;
+    /* Traverse to the parent of the insertion point */
+    for (mask = 1 << (level - 1); mask > 1; mask >>= 1)
+        current = (leaf_count & mask) ? current->right : current->left;
 
+    /* Create the new node and attach it */
     new_node = binary_tree_node(current, value);
-    (total_nodes & 1) ? (current->right = new_node) : (current->left = new_node);
+    if (leaf_count & 1)
+        current->right = new_node;
+    else
+        current->left = new_node;
 
-    swap = new_node;
-    while (swap->parent && swap->n > swap->parent->n)
+    /* Perform upward heapification */
+    swap_node = new_node;
+    while (swap_node->parent && swap_node->n > swap_node->parent->n)
     {
-        tmp = swap->n;
-        swap->n = swap->parent->n;
-        swap->parent->n = tmp;
-        swap = swap->parent;
+        temp = swap_node->n;
+        swap_node->n = swap_node->parent->n;
+        swap_node->parent->n = temp;
+        new_node = swap_node->parent;
+        swap_node = swap_node->parent;
     }
 
     return (new_node);
 }
 
 /**
- * binary_tree_size - Measures the size of a binary tree
- * @tree: Pointer to the root of the tree
+ * calculate_tree_size - Computes the size of a binary tree
+ * @tree: Pointer to the root node of the tree
  *
- * Return: Size of the tree, or 0 if tree is NULL
+ * Return: The size of the tree (number of nodes), or 0 if tree is NULL
  */
-size_t binary_tree_size(const binary_tree_t *tree)
+size_t calculate_tree_size(const binary_tree_t *tree)
 {
     if (!tree)
         return (0);
 
-    return (1 + binary_tree_size(tree->left) + binary_tree_size(tree->right));
+    return (calculate_tree_size(tree->left) + calculate_tree_size(tree->right) + 1);
 }
