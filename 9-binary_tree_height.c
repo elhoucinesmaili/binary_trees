@@ -1,15 +1,20 @@
 #include "binary_trees.h"
 
 /**
- * binary_tree_depth - Measures the depth of a node in a binary tree
- * @node: Pointer to the node to measure the depth of
+ * binary_tree_balance - Measures the balance factor of a binary tree node
+ * @tree: Pointer to the node to measure the balance factor of
  *
- * Return: Depth of the node, 0 if node is NULL
+ * Return: Balance factor of the node, 0 if tree is NULL
  */
-size_t binary_tree_depth(const binary_tree_t *node)
+int binary_tree_balance(const binary_tree_t *tree)
 {
-	if (node == NULL || node->parent == NULL)
+	int left_height, right_height;
+
+	if (tree == NULL)
 		return (0);
 
-	return (1 + binary_tree_depth(node->parent));
+	left_height = tree->left ? (int)binary_tree_height(tree->left) : -1;
+	right_height = tree->right ? (int)binary_tree_height(tree->right) : -1;
+
+	return (left_height - right_height);
 }
